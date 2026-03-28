@@ -10,6 +10,17 @@ const api = axios.create({
   },
 });
 
+// Attach session token from localStorage to every request
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('session_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 // Auth endpoints
 export const authApi = {
   googleLogin: (role?: 'teacher' | 'student') => {
@@ -17,7 +28,10 @@ export const authApi = {
     window.location.href = `${API_URL}/auth/google${roleParam}`;
   },
   getMe: () => api.get('/auth/me'),
-  logout: () => api.post('/auth/logout'),
+  logout: () => {
+    if (typeof window !== 'undefined') localStorage.removeItem('session_token');
+    return api.post('/auth/logout');
+  },
 };
 
 // Teacher endpoints

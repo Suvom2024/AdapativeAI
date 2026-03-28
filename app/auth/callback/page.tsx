@@ -11,9 +11,18 @@ function AuthCallbackContent() {
     // Check if we have a session by trying to get user info
     const checkAuth = async () => {
       try {
+        // Extract token from URL and persist it
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        if (token) {
+          localStorage.setItem('session_token', token);
+        }
+
+        const storedToken = token || localStorage.getItem('session_token');
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
         const response = await fetch(`${apiUrl}/auth/me`, {
           credentials: 'include',
+          headers: storedToken ? { Authorization: `Bearer ${storedToken}` } : {},
         });
         if (response.ok) {
           const user = await response.json();
